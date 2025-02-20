@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; cursor: pointer; border: none; }
+        .delete-btn { background-color: red; color: white; }
+        .delete-btn:hover { background-color: darkred; }
+        .edit-btn { background-color: blue; color: white; }
+        .edit-btn:hover { background-color: darkblue; }
+        input, button { padding: 5px; margin: 5px; }
+    </style>
+    <script>
+        async function deleteItem(itemId) {
+            const response = await fetch(`/items/${itemId}`, { method: 'DELETE' });
+            if (response.ok) {
+                alert("Item deleted successfully!");
+                window.location.reload();
+            } else {
+                alert("Error deleting item.");
+            }
+        }
+
+        async function createItem(event) {
+            event.preventDefault();
+            const name = document.getElementById("name").value;
+            const description = document.getElementById("description").value;
+            const price = document.getElementById("price").value;
+
+
+            const response = await fetch("/items/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description ,price})
+            });
+
+            if (response.ok) {
+                alert("Item created successfully!");
+                window.location.reload();
+            } else {
+                alert("Error creating item.");
+            }
+        }
+
+        function editItem(itemId, name, description,price) {
+            document.getElementById("edit-id").value = itemId;
+            document.getElementById("edit-name").value = name;
+            document.getElementById("edit-description").value = description;
+            document.getElementById("edit-price").value = price;
+            document.getElementById("edit-form").style.display = "block";
+        }
+
+        async function updateItem(event) {
+            event.preventDefault();
+            const itemId = document.getElementById("edit-id").value;
+            const name = document.getElementById("edit-name").value;
+            const description = document.getElementById("edit-description").value;
+            const price = document.getElementById("edit-price").value;
+
+            const response = await fetch(`/items/${itemId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description,price })
+            });
+
+            if (response.ok) {
+                alert("Item updated successfully!");
+                window.location.reload();
+            } else {
+                alert("Error updating item.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Fast Api Items List</h1>
+
+    <!-- Form to Create Item -->
+    <div>
+        <h3>Create a New Item</h3>
+        <form onsubmit="createItem(event)">
+            <input type="text" id="name" placeholder="Item Name" required>
+            <input type="text" id="description" placeholder="Description" required>
+            <input type="text" id="price" placeholder="Price" required>
+
+            <button type="submit">Create</button>
+        </form>
+    </div>
+
+    <!-- Edit Form -->
+    <div id="edit-form" style="display: none;">
+        <h3>Edit Item</h3>
+        <form onsubmit="updateItem(event)">
+            <input type="hidden" id="edit-id">
+            <input type="text" id="edit-name" placeholder="Item Name" required>
+            <input type="text" id="edit-description" placeholder="Description" required>
+            <input type="text" id="edit-price" placeholder="Price" required>
+            <button type="submit">Update</button>
+        </form>
+    </div>
+
+    {% if items %}
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Actions</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.price }}</td>
+            <td>
+                <button class="edit-btn" onclick="editItem('{{ item.id }}', '{{ item.name }}', '{{ item.description }}','{{ item.price }}')">Edit</button>
+                <button class="delete-btn" onclick="deleteItem('{{ item.id }}')">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No items found.</p>
+    {% endif %}
+</body>
+</html>
